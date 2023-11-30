@@ -79,7 +79,7 @@ def pad_or_trim(array, length: int = N_SAMPLES, *, axis: int = -1):
 
 
 @lru_cache(maxsize=None)
-def mel_filters(device, n_mels: int = N_MELS) -> torch.Tensor:
+def mel_filters(device, n_mels: int) -> torch.Tensor:
     """
     load the mel filterbank matrix for projecting STFT into a Mel spectrogram.
     Allows decoupling librosa dependency; saved using:
@@ -87,9 +87,10 @@ def mel_filters(device, n_mels: int = N_MELS) -> torch.Tensor:
         np.savez_compressed(
             "mel_filters.npz",
             mel_80=librosa.filters.mel(sr=16000, n_fft=400, n_mels=80),
+            mel_128=librosa.filters.mel(sr=16000, n_fft=400, n_mels=128),
         )
     """
-    assert n_mels == 80, f"Unsupported n_mels: {n_mels}"
+    assert n_mels in {80, 128}, f"Unsupported n_mels: {n_mels}"
     with np.load(
         os.path.join(os.path.dirname(__file__), "assets", "mel_filters.npz")
     ) as f:
@@ -98,7 +99,7 @@ def mel_filters(device, n_mels: int = N_MELS) -> torch.Tensor:
 
 def log_mel_spectrogram(
     audio: Union[str, np.ndarray, torch.Tensor],
-    n_mels: int = N_MELS,
+    n_mels: int = 80,
     padding: int = 0,
     device: Optional[Union[str, torch.device]] = None,
 ):
